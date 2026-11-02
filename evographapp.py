@@ -19,7 +19,7 @@ if not st.session_state["autenticado"]:
         st.title("🔐 Acesso ao Painel BNCC")
         
         # Inserção da imagem selecionada pelo usuário na tela principal de login
-        caminho_imagem = "/content/IMG-20260822-WA0016.jpg"
+        caminho_imagem = "IMG-20260822-WA0016.jpg"
         if os.path.exists(caminho_imagem):
             st.image(caminho_imagem, use_container_width=True)
         else:
