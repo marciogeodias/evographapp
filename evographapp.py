@@ -674,7 +674,7 @@ with aba_frequencia:
             else:
                 df_chamada_mes.loc[idx_aluno, col_dia] = ""
 
-    st.info("💡 **Dicionário Fixo de Alunos Ativo:** A lista de chamada carrega os nomes e e-mails de cada turma (7º A ao 7º E) automaticamente. As frequências acumuladas até Novembro/2026 já estão sincronizadas com a Aba 3.")
+    st.info("💡 **Dicionário Fixo de Alunos Ativo:** )
 
     df_editado = st.data_editor(
         df_chamada_mes,
