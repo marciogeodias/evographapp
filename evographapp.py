@@ -277,8 +277,9 @@ with aba_relatorio:
                     return 'background-color: #d4edda; color: #155724;'
                 return ''
 
+            # Uso de .map() para compatibilidade universal com Pandas 2.x+
             st.dataframe(
-                df_freq_status.style.applymap(destacar_frequencia, subset=["Status"]),
+                df_freq_status.style.map(destacar_frequencia, subset=["Status"]),
                 use_container_width=True
             )
         else:
