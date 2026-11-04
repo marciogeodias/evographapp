@@ -392,10 +392,11 @@ with aba_relatorio:
 
 # ------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
-# ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE
+# ------------------------------------------------------------------------------
+# ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE (ANO LETIVO 2026)
 # ------------------------------------------------------------------------------
 with aba_frequencia:
-    st.header("📋 4. Gestão de Frequência e Diário de Classe")
+    st.header("📋 4. Gestão de Frequência e Diário de Classe (2026)")
     
     if "df_historico_completo" in st.session_state:
         df_base = st.session_state["df_historico_completo"]
@@ -406,52 +407,63 @@ with aba_frequencia:
             turma_freq = st.selectbox("Selecione a Turma:", turmas, key="turma_freq")
         with col_f2:
             meses_map = {
-                "Fevereiro": ("2024-02-01", "2024-02-29"),
-                "Março": ("2024-03-01", "2024-03-31"),
-                "Abril": ("2024-04-01", "2024-04-30"),
-                "Maio": ("2024-05-01", "2024-05-31"),
-                "Junho": ("2024-06-01", "2024-06-30"),
-                "Julho": ("2024-07-01", "2024-07-31"),
-                "Agosto": ("2024-08-01", "2024-08-31"),
-                "Setembro": ("2024-09-01", "2024-09-30"),
-                "Outubro": ("2024-10-01", "2024-10-31"),
-                "Novembro": ("2024-11-01", "2024-11-30"),
-                "Dezembro": ("2024-12-01", "2024-12-31")
+                "Fevereiro": ("2026-02-02", "2026-02-27"),
+                "Março": ("2026-03-02", "2026-03-31"),
+                "Abril": ("2026-04-01", "2026-04-30"),
+                "Maio": ("2026-05-01", "2026-05-29"),
+                "Junho": ("2026-06-01", "2026-06-30"),
+                "Julho": ("2026-07-01", "2026-07-31"),
+                "Agosto": ("2026-08-03", "2026-08-31"),
+                "Setembro": ("2026-09-01", "2026-09-30"),
+                "Outubro": ("2026-10-01", "2026-10-30"),
+                "Novembro": ("2026-11-02", "2026-11-30"),
+                "Dezembro": ("2026-12-01", "2026-12-23")
             }
             mes_selecionado = st.selectbox("Selecione o Mês da Chamada:", list(meses_map.keys()), key="mes_freq")
             
-        st.subheader(f"Chamada - Turma {turma_freq} ({mes_selecionado})")
+        st.subheader(f"Chamada 2026 - Turma {turma_freq} ({mes_selecionado})")
         
-        # Obter alunos da turma
         alunos_turma = df_base[df_base["Turma_Formatada"] == turma_freq][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
         
-        # Extrair RA a partir do email
         def extrair_ra_email(email):
             match = re.search(r'(\d+)', str(email))
             return f"{match.group(1).zfill(9)}-SP" if match else "000000000-SP"
 
         alunos_turma["RA"] = alunos_turma["Email"].apply(extrair_ra_email)
 
-        # Gerar colunas de dias úteis do mês selecionado
+        # Feriados nacionais / pontes em 2026 para excluir das colunas de aula
+        feriados_2026 = [
+            "2026-02-16", "2026-02-17", "2026-02-18", # Carnaval
+            "2026-04-03", # Sexta-feira Santa
+            "2026-04-21", # Tiradentes
+            "2026-05-01", # Dia do Trabalho
+            "2026-06-04", # Corpus Christi
+            "2026-09-07", # Independência
+            "2026-10-12", # Nossa Senhora Aparecida
+            "2026-11-02", # Finados
+            "2026-11-20"  # Consciência Negra
+        ]
+
         data_ini, data_fim = meses_map[mes_selecionado]
         dias_uteis = pd.date_range(start=data_ini, end=data_fim, freq="B")
+        dias_letivos = [d for d in dias_uteis if d.strftime("%Y-%m-%d") not in feriados_2026]
         
         df_chamada_mes = alunos_turma[["Nome", "RA", "Email"]].copy()
-        for d in dias_uteis:
+        for d in dias_letivos:
             col_dia = d.strftime("%d/%m")
-            df_chamada_mes[col_dia] = "P" # Padrão Presente (P)
+            df_chamada_mes[col_dia] = "P"
             
-        st.info("💡 **Dica:** Preencha **P** para Presente e **F** para Falta nos dias letivos abaixo.")
+        st.info("💡 **Calendário 2026 (Dias Letivos):** Preencha **P** para Presente e **F** para Falta.")
         
         df_editado = st.data_editor(
             df_chamada_mes,
             use_container_width=True,
             num_rows="fixed",
-            key=f"editor_{turma_freq}_{mes_selecionado}"
+            key=f"editor_{turma_freq}_{mes_selecionado}_2026"
         )
         
-        if st.button("💾 Salvar Chamada do Mês", key="btn_salvar_freq"):
-            st.success(f"Frequência da Turma {turma_freq} para o mês de {mes_selecionado} registrada com sucesso!")
+        if st.button("💾 Salvar Chamada do Mês", key="btn_salvar_freq_2026"):
+            st.success(f"Frequência da Turma {turma_freq} para o mês de {mes_selecionado}/2026 registrada com sucesso!")
             
     else:
         st.warning("Faça o upload dos arquivos CSV das turmas na Aba 2 para carregar a lista de alunos e habilitar a frequência.")
