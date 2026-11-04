@@ -4,6 +4,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import re
 
 st.set_page_config(page_title="Painel de Diagnóstico BNCC", layout="wide")
 
