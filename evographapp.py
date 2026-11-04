@@ -674,7 +674,7 @@ with aba_frequencia:
             else:
                 df_chamada_mes.loc[idx_aluno, col_dia] = ""
 
-    st.info("💡 **Dicionário Fixo de Alunos Ativo:** )
+    st.info("💡 **Dicionário Fixo de Alunos Ativo:** ")
 
     df_editado = st.data_editor(
         df_chamada_mes,
