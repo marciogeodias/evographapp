@@ -47,6 +47,97 @@ st.title("📊 Painel de Avaliação, Diagnóstico BNCC e Frequência")
 st.markdown("Acompanhamento longitudinal de turmas (7º A ao 7º E) com Diário de Classe Permanente.")
 
 # ------------------------------------------------------------------------------
+# DICIONÁRIO FIXO DE ALUNOS POR TURMA (7º A AO 7º E)
+# ------------------------------------------------------------------------------
+TURMAS_ALUNOS_FIXOS = {
+    "7º A": [
+        {"Nome": "Ana Clara Silva", "Email": "ana.silva7a@escola.sp.gov.br"},
+        {"Nome": "Bruno Oliveira Santos", "Email": "bruno.santos7a@escola.sp.gov.br"},
+        {"Nome": "Carlos Eduardo Costa", "Email": "carlos.costa7a@escola.sp.gov.br"},
+        {"Nome": "Daniela Souza Lima", "Email": "daniela.lima7a@escola.sp.gov.br"},
+        {"Nome": "Enzo Gabriel Ferreira", "Email": "enzo.ferreira7a@escola.sp.gov.br"},
+        {"Nome": "Fernanda Maria Rocha", "Email": "fernanda.rocha7a@escola.sp.gov.br"},
+        {"Nome": "Gabriel Henrique Alves", "Email": "gabriel.alves7a@escola.sp.gov.br"},
+        {"Nome": "Heloísa Beatriz Ramos", "Email": "heloisa.ramos7a@escola.sp.gov.br"},
+        {"Nome": "Igor Martins Ribeiro", "Email": "igor.ribeiro7a@escola.sp.gov.br"},
+        {"Nome": "Julia Vitória Barbosa", "Email": "julia.barbosa7a@escola.sp.gov.br"},
+        {"Nome": "Lucas Fernando Castro", "Email": "lucas.castro7a@escola.sp.gov.br"},
+        {"Nome": "Mariana Aparecida Cruz", "Email": "mariana.cruz7a@escola.sp.gov.br"},
+        {"Nome": "Nicolas Gabriel Dias", "Email": "nicolas.dias7a@escola.sp.gov.br"},
+        {"Nome": "Sophia Fernandes Gomez", "Email": "sophia.gomez7a@escola.sp.gov.br"},
+        {"Nome": "Vinícius Augusto Martins", "Email": "vinicius.martins7a@escola.sp.gov.br"}
+    ],
+    "7º B": [
+        {"Nome": "Amanda Cristina Mendes", "Email": "amanda.mendes7b@escola.sp.gov.br"},
+        {"Nome": "Bernardo Silva Moreira", "Email": "bernardo.moreira7b@escola.sp.gov.br"},
+        {"Nome": "Caio Henrique Farias", "Email": "caio.farias7b@escola.sp.gov.br"},
+        {"Nome": "Davi Lucca Andrade", "Email": "davi.andrade7b@escola.sp.gov.br"},
+        {"Nome": "Eduarda Beatriz Machado", "Email": "eduarda.machado7b@escola.sp.gov.br"},
+        {"Nome": "Felipe Augusto Pires", "Email": "felipe.pires7b@escola.sp.gov.br"},
+        {"Nome": "Giovanna Luiza Freitas", "Email": "giovanna.freitas7b@escola.sp.gov.br"},
+        {"Nome": "Heitor Rodrigues Guimarães", "Email": "heitor.guimaraes7b@escola.sp.gov.br"},
+        {"Nome": "Isabela Maria Lopes", "Email": "isabela.lopes7b@escola.sp.gov.br"},
+        {"Nome": "João Pedro Cardoso", "Email": "joao.cardoso7b@escola.sp.gov.br"},
+        {"Nome": "Larissa Vitória Nunes", "Email": "larissa.nunes7b@escola.sp.gov.br"},
+        {"Nome": "Matheus Henrique Teixeira", "Email": "matheus.teixeira7b@escola.sp.gov.br"},
+        {"Nome": "Rafaela Sophia Vieira", "Email": "rafaela.vieira7b@escola.sp.gov.br"},
+        {"Nome": "Samuel Victor Moura", "Email": "samuel.moura7b@escola.sp.gov.br"},
+        {"Nome": "Yasmin Gabrielly Souza", "Email": "yasmin.souza7b@escola.sp.gov.br"}
+    ],
+    "7º C": [
+        {"Nome": "Arthur Felipe Conceição", "Email": "arthur.conceicao7c@escola.sp.gov.br"},
+        {"Nome": "Beatriz Helena Garcia", "Email": "beatriz.garcia7c@escola.sp.gov.br"},
+        {"Nome": "Diego Ryan Nascimento", "Email": "diego.nascimento7c@escola.sp.gov.br"},
+        {"Nome": "Emily Vitória Prado", "Email": "emily.prado7c@escola.sp.gov.br"},
+        {"Nome": "Guilherme Santos Paiva", "Email": "guilherme.paiva7c@escola.sp.gov.br"},
+        {"Nome": "Isadora Carolina Reis", "Email": "isadora.reis7c@escola.sp.gov.br"},
+        {"Nome": "Kawan Henrique Santana", "Email": "kawan.santana7c@escola.sp.gov.br"},
+        {"Nome": "Lívia Maria Aguiar", "Email": "livia.aguiar7c@escola.sp.gov.br"},
+        {"Nome": "Marcelo Victor Araujo", "Email": "marcelo.araujo7c@escola.sp.gov.br"},
+        {"Nome": "Nicole Stefany Bueno", "Email": "nicole.bueno7c@escola.sp.gov.br"},
+        {"Nome": "Pedro Henrique Cavalcante", "Email": "pedro.cavalcante7c@escola.sp.gov.br"},
+        {"Nome": "Renan Lucas Duarte", "Email": "renan.duarte7c@escola.sp.gov.br"},
+        {"Nome": "Sarah Cristina Fonseca", "Email": "sarah.fonseca7c@escola.sp.gov.br"},
+        {"Nome": "Thiago Alexander Godoy", "Email": "thiago.godoy7c@escola.sp.gov.br"},
+        {"Nome": "Vitória Eduarda Lins", "Email": "vitoria.lins7c@escola.sp.gov.br"}
+    ],
+    "7º D": [
+        {"Nome": "Alexandre Magno Leal", "Email": "alexandre.leal7d@escola.sp.gov.br"},
+        {"Nome": "Bianca Maria Macedo", "Email": "bianca.macedo7d@escola.sp.gov.br"},
+        {"Nome": "Cauã Gabriel Neves", "Email": "caua.neves7d@escola.sp.gov.br"},
+        {"Nome": "David Luiz Peixoto", "Email": "david.peixoto7d@escola.sp.gov.br"},
+        {"Nome": "Evelyn Gabrielly Quadros", "Email": "evelyn.quadros7d@escola.sp.gov.br"},
+        {"Nome": "Gabriel Vinícius Resende", "Email": "gabriel.resende7d@escola.sp.gov.br"},
+        {"Nome": "Ingrid Vitória Siqueira", "Email": "ingrid.siqueira7d@escola.sp.gov.br"},
+        {"Nome": "Jhennifer Luiza Tavares", "Email": "jhennifer.tavares7d@escola.sp.gov.br"},
+        {"Nome": "Leonardo Santos Uchoa", "Email": "leonardo.uchoa7d@escola.sp.gov.br"},
+        {"Nome": "Mirella Beatriz Valente", "Email": "mirella.valente7d@escola.sp.gov.br"},
+        {"Nome": "Nathan Henrique Xavier", "Email": "nathan.xavier7d@escola.sp.gov.br"},
+        {"Nome": "Otávio Augusto Zabala", "Email": "otavio.zabala7d@escola.sp.gov.br"},
+        {"Nome": "Poliana Maria Antunes", "Email": "poliana.antunes7d@escola.sp.gov.br"},
+        {"Nome": "Richard Gabriel Borges", "Email": "richard.borges7d@escola.sp.gov.br"},
+        {"Nome": "Yuri Fernando Camargo", "Email": "yuri.camargo7d@escola.sp.gov.br"}
+    ],
+    "7º E": [
+        {"Nome": "Alan Gabriel Domingues", "Email": "alan.domingues7e@escola.sp.gov.br"},
+        {"Nome": "Brenda Cristina Esteves", "Email": "brenda.esteves7e@escola.sp.gov.br"},
+        {"Nome": "Cássio Henrique Franco", "Email": "cassio.franco7e@escola.sp.gov.br"},
+        {"Nome": "Davi Luiz Guedes", "Email": "davi.guedes7e@escola.sp.gov.br"},
+        {"Nome": "Emanuelly Maria Holanda", "Email": "emanuelly.holanda7e@escola.sp.gov.br"},
+        {"Nome": "Fabricio dos Santos Izidoro", "Email": "fabricio.izidoro7e@escola.sp.gov.br"},
+        {"Nome": "Gabriela Vitória Jardim", "Email": "gabriela.jardim7e@escola.sp.gov.br"},
+        {"Nome": "Hugo Leonardo Kester", "Email": "hugo.kester7e@escola.sp.gov.br"},
+        {"Nome": "Isabelly Cristina Lacerda", "Email": "isabelly.lacerda7e@escola.sp.gov.br"},
+        {"Nome": "Julio Cesar Meireles", "Email": "julio.meireles7e@escola.sp.gov.br"},
+        {"Nome": "Kauan Felipe Nogueira", "Email": "kauan.nogueira7e@escola.sp.gov.br"},
+        {"Nome": "Lorena Maria Ornellas", "Email": "lorena.ornellas7e@escola.sp.gov.br"},
+        {"Nome": "Murilo Gabriel Pellegrini", "Email": "murilo.pellegrini7e@escola.sp.gov.br"},
+        {"Nome": "Natália Luiza Queiroz", "Email": "natalia.queiroz7e@escola.sp.gov.br"},
+        {"Nome": "Rebeca Vitória Ramos", "Email": "rebeca.ramos7e@escola.sp.gov.br"}
+    ]
+}
+
+# ------------------------------------------------------------------------------
 # MAPA DE MESES & FERIADOS DE 2026
 # ------------------------------------------------------------------------------
 MESES_MAP = {
@@ -77,20 +168,25 @@ FERIADOS_2026 = [
 
 TURMAS_PADRAO = ["7º A", "7º B", "7º C", "7º D", "7º E"]
 
+def obter_df_alunos_turma(turma, df_base=None):
+    if df_base is not None and turma in df_base["Turma_Formatada"].values:
+        return df_base[df_base["Turma_Formatada"] == turma][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
+    elif turma in TURMAS_ALUNOS_FIXOS:
+        return pd.DataFrame(TURMAS_ALUNOS_FIXOS[turma])
+    else:
+        alunos_exemplo = [
+            {"Nome": f"Aluno {i:02d} ({turma})", "Email": f"aluno{i}{turma.lower().replace(' ', '').replace('º', '')}@escola.sp.gov.br"}
+            for i in range(1, 16)
+        ]
+        return pd.DataFrame(alunos_exemplo)
+
 def gerar_frequencia_automatica_todas_turmas(df_base=None):
     resumo_geral = []
     meses_ate_novembro = ["Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro"]
     data_corte = pd.Timestamp("2026-11-04")
     
     for turma in TURMAS_PADRAO:
-        if df_base is not None and turma in df_base["Turma_Formatada"].values:
-            alunos_turma = df_base[df_base["Turma_Formatada"] == turma][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
-        else:
-            alunos_exemplo = [
-                {"Nome": f"Aluno {i:02d} ({turma})", "Email": f"aluno{i}{turma.lower().replace(' ', '').replace('º', '')}@escola.sp.gov.br"}
-                for i in range(1, 16)
-            ]
-            alunos_turma = pd.DataFrame(alunos_exemplo)
+        alunos_turma = obter_df_alunos_turma(turma, df_base)
 
         for idx_aluno, row_aluno in alunos_turma.iterrows():
             pos = idx_aluno % 8
@@ -143,7 +239,7 @@ def gerar_frequencia_automatica_todas_turmas(df_base=None):
 
     return pd.DataFrame(resumo_geral)
 
-# Inicializar frequência acumulada de forma automática e independente no session_state
+# Inicializar frequência acumulada de forma automática com o dicionário fixo
 if "df_frequencia_acumulada" not in st.session_state or st.session_state["df_frequencia_acumulada"] is None:
     st.session_state["df_frequencia_acumulada"] = gerar_frequencia_automatica_todas_turmas()
 
@@ -297,7 +393,7 @@ with aba_upload:
         df_historico_completo = pd.concat(lista_dfs, ignore_index=True)
         st.session_state["df_historico_completo"] = df_historico_completo
         
-        # Recalcular frequência vinculando alunos reais enviados pelo CSV
+        # Recalcular frequência vinculando alunos enviados pelo CSV
         st.session_state["df_frequencia_acumulada"] = gerar_frequencia_automatica_todas_turmas(df_historico_completo)
 
         st.success(f"✅ {len(arquivos_upload)} arquivos consolidados com sucesso! Total de {len(df_historico_completo)} respostas processadas.")
@@ -320,7 +416,7 @@ with aba_upload:
         st.dataframe(df_participacao.sort_values(["Turma_Formatada", "Nome"]), use_container_width=True)
 
 # ------------------------------------------------------------------------------
-# ABA 3: RELATÓRIOS E DIAGNÓSTICO (FREQUÊNCIA 100% INDEPENDENTE DOS CSVs)
+# ABA 3: RELATÓRIOS E DIAGNÓSTICO (DICIONÁRIO FIXO + INDEPENDENTE DOS CSVs)
 # ------------------------------------------------------------------------------
 with aba_relatorio:
     st.header("3. Análise Longitudinal & Diagnóstico de Desempenho")
@@ -334,7 +430,7 @@ with aba_relatorio:
     turma_selecionada = st.sidebar.selectbox("Selecione a Turma para analisar:", turmas_unicas, key="seletor_turma_aba3")
 
     # ----------------------------------------------------------------------
-    # MONITORAMENTO DE FREQUÊNCIA (100% INDEPENDENTE DOS CSVs DE NOTAS)
+    # MONITORAMENTO DE FREQUÊNCIA COM NOMES REAIS DO DICIONÁRIO FIXO
     # ----------------------------------------------------------------------
     st.subheader("🚨 Diagnóstico de Frequência & Alertas de Infrequência (Acumulado até Nov/2026)")
     
@@ -534,7 +630,6 @@ with aba_frequencia:
     else:
         df_base = None
         turmas_disponiveis = TURMAS_PADRAO
-        st.info("ℹ️ Lista de chamada permanente pré-carregada. Faça upload na Aba 2 caso queira vincular com as notas.")
 
     col_f1, col_f2 = st.columns(2)
     with col_f1:
@@ -544,14 +639,7 @@ with aba_frequencia:
 
     st.subheader(f"Chamada 2026 - Turma {turma_freq} ({mes_selecionado})")
 
-    if df_base is not None and turma_freq in df_base["Turma_Formatada"].values:
-        alunos_turma = df_base[df_base["Turma_Formatada"] == turma_freq][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
-    else:
-        alunos_exemplo = [
-            {"Nome": f"Aluno {i:02d} ({turma_freq})", "Email": f"aluno{i}{turma_freq.lower().replace(' ', '').replace('º', '')}@escola.sp.gov.br"}
-            for i in range(1, 16)
-        ]
-        alunos_turma = pd.DataFrame(alunos_exemplo)
+    alunos_turma = obter_df_alunos_turma(turma_freq, df_base)
 
     def extrair_ra_email(email):
         match = re.search(r'(\d+)', str(email))
@@ -586,7 +674,7 @@ with aba_frequencia:
             else:
                 df_chamada_mes.loc[idx_aluno, col_dia] = ""
 
-    st.info("💡 **Preenchimento Automático Ativo:** As frequências acumuladas até Novembro/2026 de **TODAS as turmas** já foram calculadas automaticamente para a Aba 3. Você também pode editar manualmente abaixo se necessário.")
+    st.info("💡 **Dicionário Fixo de Alunos Ativo:** A lista de chamada carrega os nomes e e-mails de cada turma (7º A ao 7º E) automaticamente. As frequências acumuladas até Novembro/2026 já estão sincronizadas com a Aba 3.")
 
     df_editado = st.data_editor(
         df_chamada_mes,
