@@ -297,4 +297,262 @@ with aba_relatorio:
             df_media_turmas = df_tudo.groupby(["Avaliacao", "Turma_Formatada"], observed=False)["Nota_Final"].mean().reset_index()
             sns.lineplot(
                 data=df_media_turmas,
-                x="Avaliac
+                x="Avaliacao",
+                y="Nota_Final",
+                hue="Turma_Formatada",
+                marker="o",
+                linewidth=2.5,
+                ax=ax1
+            )
+            ax1.legend(title="Turma", bbox_to_anchor=(1.05, 1), loc='upper left')
+        else:
+            df_media_periodo = df_filtrado_turma.groupby("Avaliacao", observed=False)["Nota_Final"].mean().reset_index()
+            sns.lineplot(
+                data=df_media_periodo,
+                x="Avaliacao",
+                y="Nota_Final",
+                marker="o",
+                linewidth=3,
+                color="#1f77b4",
+                ax=ax1
+            )
+
+        ax1.set_ylim(0, 105)
+        ax1.set_ylabel("Média (0 a 100)")
+        ax1.set_xlabel("Período Avaliado")
+        st.pyplot(fig1)
+
+        st.divider()
+
+        # ----------------------------------------------------------------------
+        # SEÇÃO 2: EVOLUÇÃO INDIVIDUAL
+        # ----------------------------------------------------------------------
+        st.subheader("👤 2. Evolução Individual de Notas por Aluno")
+
+        df_filtrado_turma["Rotulo_Aluno"] = df_filtrado_turma["Nome"] + " (" + df_filtrado_turma["Email"] + ")"
+        rotulos_disponiveis = sorted(df_filtrado_turma["Rotulo_Aluno"].unique().tolist())
+
+        rotulos_selecionados = st.multiselect(
+            "Selecione alunos para comparar no gráfico:",
+            options=rotulos_disponiveis,
+            default=rotulos_disponiveis[:3] if len(rotulos_disponiveis) >= 3 else rotulos_disponiveis
+        )
+
+        if rotulos_selecionados:
+            df_alunos_filtrados = df_filtrado_turma[df_filtrado_turma["Rotulo_Aluno"].isin(rotulos_selecionados)]
+
+            fig2, ax2 = plt.subplots(figsize=(10, 4))
+            sns.lineplot(
+                data=df_alunos_filtrados,
+                x="Avaliacao",
+                y="Nota_Final",
+                hue="Nome",
+                style="Nome",
+                markers=True,
+                dashes=False,
+                markersize=9,
+                linewidth=2.5,
+                ax=ax2
+            )
+            ax2.set_ylim(0, 105)
+            ax2.set_ylabel("Nota Final (0 a 100)")
+            ax2.set_xlabel("Período Avaliado")
+            ax2.legend(title="Estudante", bbox_to_anchor=(1.05, 1), loc='upper left')
+            st.pyplot(fig2)
+
+        st.divider()
+
+        # ----------------------------------------------------------------------
+        # SEÇÃO 3: DIAGNÓSTICO DE HABILIDADES BNCC
+        # ----------------------------------------------------------------------
+        st.subheader("🧩 3. Diagnóstico Individual de Habilidades BNCC")
+        rotulo_foco = st.selectbox("Selecione o Aluno para a Análise Detalhada:", rotulos_disponiveis)
+
+        if rotulo_foco:
+            df_aluno_foco = df_filtrado_turma[df_filtrado_turma["Rotulo_Aluno"] == rotulo_foco].copy()
+            nome_aluno_exibicao = df_aluno_foco["Nome"].iloc[0]
+
+            registros_hab = []
+            for _, row in df_aluno_foco.iterrows():
+                periodo_row = row["Avaliacao"]
+                gab_row = todos_gabaritos.get(periodo_row, todos_gabaritos.get("TRIMESTRE_1"))
+
+                for q_code, info in gab_row.items():
+                    col_acerto = f"Acerto_{q_code}"
+                    if col_acerto in row:
+                        hab_texto = f"{q_code}: {info['habilidade']}"
+                        registros_hab.append({
+                            "Habilidade BNCC": hab_texto,
+                            "Avaliacao": periodo_row,
+                            "Acertou": row[col_acerto]
+                        })
+
+            df_matriz_aluno = pd.DataFrame(registros_hab)
+
+            if not df_matriz_aluno.empty:
+                pivot_aluno = df_matriz_aluno.pivot_table(
+                    index="Habilidade BNCC",
+                    columns="Avaliacao",
+                    values="Acertou",
+                    aggfunc="mean"
+                )
+
+                fig3, ax3 = plt.subplots(figsize=(10, 6))
+                sns.heatmap(
+                    pivot_aluno,
+                    annot=True,
+                    cmap="YlGn",
+                    cbar=False,
+                    linewidths=1.5,
+                    linecolor="white",
+                    fmt=".0f",
+                    ax=ax3
+                )
+
+                ax3.set_title(f"Mapeamento de Habilidades BNCC: {nome_aluno_exibicao}", fontsize=13, fontweight="bold")
+                ax3.set_xlabel("Período Avaliado", fontsize=11)
+                ax3.set_ylabel("Questão & Habilidade BNCC", fontsize=11)
+
+                st.pyplot(fig3)
+                st.caption("🟢 **1** = Domínio da habilidade | 🟡 **0** = Defasagem na questão.")
+    else:
+        st.warning("Faça o upload dos arquivos CSV na Aba 2 para habilitar a análise temporal.")
+
+# ------------------------------------------------------------------------------
+# ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE PERMANENTE (COM DADOS ALEATÓRIOS)
+# ------------------------------------------------------------------------------
+with aba_frequencia:
+    st.header("📋 4. Gestão de Frequência e Diário de Classe (2026)")
+    
+    turmas_padrao = ["7º A", "7º B", "7º C", "7º D", "7º E"]
+    
+    # 1. Obter base de alunos (do upload da Aba 2 ou gerar lista padrão autônoma)
+    if "df_historico_completo" in st.session_state and not st.session_state["df_historico_completo"].empty:
+        df_base = st.session_state["df_historico_completo"]
+        turmas_disponiveis = sorted(df_base["Turma_Formatada"].unique().tolist())
+    else:
+        df_base = None
+        turmas_disponiveis = turmas_padrao
+        st.info("ℹ️ Lista de chamada permanente pré-carregada. Faça upload na Aba 2 caso queira vincular com as notas.")
+
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        turma_freq = st.selectbox("Selecione a Turma:", turmas_disponiveis, key="turma_freq")
+    with col_f2:
+        meses_map = {
+            "Fevereiro": ("2026-02-02", "2026-02-27"),
+            "Março": ("2026-03-02", "2026-03-31"),
+            "Abril": ("2026-04-01", "2026-04-30"),
+            "Maio": ("2026-05-01", "2026-05-29"),
+            "Junho": ("2026-06-01", "2026-06-30"),
+            "Julho": ("2026-07-01", "2026-07-31"),
+            "Agosto": ("2026-08-03", "2026-08-31"),
+            "Setembro": ("2026-09-01", "2026-09-30"),
+            "Outubro": ("2026-10-01", "2026-10-30"),
+            "Novembro": ("2026-11-02", "2026-11-30"),
+            "Dezembro": ("2026-12-01", "2026-12-23")
+        }
+        mes_selecionado = st.selectbox("Selecione o Mês da Chamada:", list(meses_map.keys()), key="mes_freq")
+
+    st.subheader(f"Chamada 2026 - Turma {turma_freq} ({mes_selecionado})")
+
+    if df_base is not None and turma_freq in df_base["Turma_Formatada"].values:
+        alunos_turma = df_base[df_base["Turma_Formatada"] == turma_freq][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
+    else:
+        alunos_exemplo = [
+            {"Nome": f"Aluno {i:02d} ({turma_freq})", "Email": f"aluno{i}{turma_freq.lower().replace(' ', '').replace('º', '')}@escola.sp.gov.br"}
+            for i in range(1, 16)
+        ]
+        alunos_turma = pd.DataFrame(alunos_exemplo)
+
+    def extrair_ra_email(email):
+        match = re.search(r'(\d+)', str(email))
+        return f"{match.group(1).zfill(9)}-SP" if match else "000000000-SP"
+
+    alunos_turma["RA"] = alunos_turma["Email"].apply(extrair_ra_email)
+
+    feriados_2026 = [
+        "2026-02-16", "2026-02-17", "2026-02-18", # Carnaval
+        "2026-04-03", # Sexta-feira Santa
+        "2026-04-21", # Tiradentes
+        "2026-05-01", # Dia do Trabalho
+        "2026-06-04", # Corpus Christi
+        "2026-09-07", # Independência
+        "2026-10-12", # Nossa Senhora Aparecida
+        "2026-11-02", # Finados
+        "2026-11-20"  # Consciência Negra
+    ]
+
+    data_ini, data_fim = meses_map[mes_selecionado]
+    dias_uteis = pd.date_range(start=data_ini, end=data_fim, freq="B")
+    dias_letivos = [d for d in dias_uteis if d.strftime("%Y-%m-%d") not in feriados_2026]
+
+    # Data limite para preenchimento automático: 04 de Novembro de 2026
+    data_corte = pd.Timestamp("2026-11-04")
+
+    df_chamada_mes = alunos_turma[["Nome", "RA", "Email"]].copy()
+
+    # Preenchimento automático com aleatoriedade proporcional aos perfis (Faltas Amarelas e Vermelhas)
+    for idx_aluno, row in df_chamada_mes.iterrows():
+        pos = idx_aluno % 8
+        if pos == 0:
+            prob_falta = 0.38  # Risco Crítico / Vermelho (38% de faltas)
+        elif pos in [1, 2]:
+            prob_falta = 0.28  # Atenção / Amarelo (28% de faltas)
+        else:
+            prob_falta = 0.06  # Frequência Regular (6% de faltas)
+
+        for col_idx, d_dt in enumerate(dias_letivos):
+            col_dia = d_dt.strftime("%d/%m")
+            if d_dt <= data_corte:
+                seed_val = (idx_aluno * 73 + col_idx * 17) % 100
+                if seed_val < (prob_falta * 100):
+                    df_chamada_mes.loc[idx_aluno, col_dia] = "F"
+                else:
+                    df_chamada_mes.loc[idx_aluno, col_dia] = "P"
+            else:
+                df_chamada_mes.loc[idx_aluno, col_dia] = ""
+
+    st.info("💡 **Dica:** A chamada possui distribuição aleatória com casos de faltas em nível Amarelo e Vermelho. Aceita **P/p** e **F/f**. Dias futuros permanecem em branco.")
+
+    df_editado = st.data_editor(
+        df_chamada_mes,
+        use_container_width=True,
+        num_rows="dynamic",
+        key=f"editor_{turma_freq}_{mes_selecionado}_2026_aleatorio"
+    )
+
+    if st.button("💾 Salvar Chamada do Mês", key="btn_salvar_freq_2026_aleatorio"):
+        colunas_dias = [c for c in df_editado.columns if c not in ["Nome", "RA", "Email"]]
+        
+        resumo_freq = []
+        for idx_row, row in df_editado.iterrows():
+            faltas = sum(1 for c in colunas_dias if str(row[c]).strip().upper() == "F")
+            presencas = sum(1 for c in colunas_dias if str(row[c]).strip().upper() == "P")
+            aulas_computadas = presencas + faltas
+            
+            if aulas_computadas > 0:
+                pct_faltas = (faltas / aulas_computadas) * 100
+                pct_presencas = (presencas / aulas_computadas) * 100
+            else:
+                pct_faltas = 0.0
+                pct_presencas = 100.0
+
+            if pct_faltas >= 35.0:
+                status = "🔴 Risco Crítico (Faltas ≥ 35%)"
+            elif pct_faltas >= 25.0:
+                status = "🟡 Atenção (Faltas 25% - 35%)"
+            else:
+                status = "🟢 Frequência Regular (< 25% Faltas)"
+
+            resumo_freq.append({
+                "Turma": turma_freq,
+                "Nome": row["Nome"],
+                "Email": row["Email"],
+                "% Presença": f"{pct_presencas:.1f}%",
+                "% Faltas": f"{pct_faltas:.1f}%",
+                "Status": status
+            })
+
+        st.session_state["df_frequencia_acumulada"] = pd.DataFrame(resumo_freq)
+        st.success(f"Frequência da Turma {turma_freq} ({mes_selecionado}/2026) salva com sucesso e sincronizada com a Aba 3!")
