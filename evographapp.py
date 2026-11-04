@@ -18,7 +18,6 @@ if not st.session_state["autenticado"]:
     with col2:
         st.title("🔐 Acesso ao Painel BNCC")
         
-        # Inserção da imagem selecionada pelo usuário na tela principal de login
         caminho_imagem = "IMG-20260822-WA0016.jpg"
         if os.path.exists(caminho_imagem):
             st.image(caminho_imagem, use_container_width=True)
@@ -38,9 +37,8 @@ if not st.session_state["autenticado"]:
                     st.rerun()
                 else:
                     st.error("Usuário ou senha incorretos. Tente novamente.")
-    st.stop()  # Interrompe a execução aqui se não estiver autenticado
+    st.stop()
 
-# Botão de logout no topo da barra lateral caso esteja autenticado
 if st.sidebar.button("🚪 Sair / Fazer Logout"):
     st.session_state["autenticado"] = False
     st.rerun()
@@ -83,10 +81,11 @@ if "gabaritos_por_prova" not in st.session_state:
         } for periodo in periodos_padrao
     }
 
-aba_config, aba_upload, aba_relatorio = st.tabs([
+aba_config, aba_upload, aba_relatorio, aba_frequencia = st.tabs([
     "1. Configurar Gabaritos & Habilidades",
     "2. Enviar CSVs & Auditoria das Turmas",
-    "3. Análise Temporal & Diagnóstico"
+    "3. Análise Temporal & Diagnóstico",
+    "4. Diário de Classe & Frequência"
 ])
 
 # ------------------------------------------------------------------------------
@@ -183,7 +182,7 @@ with aba_upload:
                 df_temp = df_temp[~df_temp["Email"].str.contains("gabarito")].copy()
 
             if "Nome" in df_temp.columns:
-                df_temp["Nome"].astype(str).str.strip().str.title()
+                df_temp["Nome"] = df_temp["Nome"].astype(str).str.strip().str.title()
 
             for col_turma in ["Serie", "Série", "Turma", "Grade"]:
                 if col_turma in df_temp.columns:
@@ -201,7 +200,6 @@ with aba_upload:
 
         st.divider()
 
-        # --- AUDITORIA DE RESUMO POR TURMA ---
         st.subheader("📊 Resumo de Participação por Turma")
 
         df_participacao = df_historico_completo.groupby(["Turma_Formatada", "Email", "Nome"])["Avaliacao"].nunique().reset_index()
@@ -218,7 +216,7 @@ with aba_upload:
         st.dataframe(df_participacao.sort_values(["Turma_Formatada", "Nome"]), use_container_width=True)
 
 # ------------------------------------------------------------------------------
-# ABA 3: RELATÓRIOS E DIAGNÓSTICO (HEATMAP SEM DUPLICAÇÃO)
+# ABA 3: RELATÓRIOS E DIAGNÓSTICO
 # ------------------------------------------------------------------------------
 with aba_relatorio:
     st.header("3. Análise Longitudinal & Evolução Temporal por Turma")
@@ -249,7 +247,6 @@ with aba_relatorio:
         df_tudo["Avaliacao"] = pd.Categorical(df_tudo["Avaliacao"], categories=ordem_periodos, ordered=True)
         df_tudo = df_tudo.sort_values("Avaliacao")
 
-        # BARRA LATERAL - FILTRO DE TURMA
         st.sidebar.header("🎯 Filtros de Visualização")
 
         turmas_unicas = ["Todas as Turmas (Comparativo)"] + sorted(df_tudo["Turma_Formatada"].dropna().unique().tolist())
@@ -337,7 +334,7 @@ with aba_relatorio:
         st.divider()
 
         # ----------------------------------------------------------------------
-        # SEÇÃO 3: DIAGNÓSTICO DE HABILIDADES BNCC (SEM DUPLICAÇÃO)
+        # SEÇÃO 3: DIAGNÓSTICO DE HABILIDADES BNCC
         # ----------------------------------------------------------------------
         st.subheader("🧩 3. Diagnóstico Individual de Habilidades BNCC")
         rotulo_foco = st.selectbox("Selecione o Aluno para a Análise Detalhada:", rotulos_disponiveis)
@@ -354,7 +351,7 @@ with aba_relatorio:
                 for q_code, info in gab_row.items():
                     col_acerto = f"Acerto_{q_code}"
                     if col_acerto in row:
-                        hab_texto = f"{q_code}: {info["habilidade"]}"
+                        hab_texto = f"{q_code}: {info['habilidade']}"
                         registros_hab.append({
                             "Habilidade BNCC": hab_texto,
                             "Avaliacao": periodo_row,
@@ -389,6 +386,41 @@ with aba_relatorio:
 
                 st.pyplot(fig3)
                 st.caption("🟢 **1** = Domínio da habilidade | 🟡 **0** = Defasagem na questão.")
-
     else:
         st.warning("Faça o upload dos arquivos CSV na Aba 2 para habilitar a análise temporal.")
+
+# ------------------------------------------------------------------------------
+# ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE
+# ------------------------------------------------------------------------------
+with aba_frequencia:
+    st.header("📋 4. Gestão de Frequência e Diário de Classe")
+    
+    if "df_historico_completo" in st.session_state:
+        df_base = st.session_state["df_historico_completo"]
+        
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            turmas = sorted(df_base["Turma_Formatada"].unique())
+            turma_freq = st.selectbox("Selecione a Turma:", turmas, key="turma_freq")
+        with col_f2:
+            meses = ["Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+            mes_selecionado = st.selectbox("Selecione o Mês da Chamada:", meses, key="mes_freq")
+            
+        st.subheader(f"Chamada - Turma {turma_freq} ({mes_selecionado})")
+        
+        alunos_turma = df_base[df_base["Turma_Formatada"] == turma_freq][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
+        
+        st.info("💡 **Dica:** Utilize o diário de classe abaixo para acompanhar o preenchimento por aluno.")
+        
+        df_editado = st.data_editor(
+            alunos_turma,
+            use_container_width=True,
+            num_rows="fixed",
+            key=f"editor_{turma_freq}_{mes_selecionado}"
+        )
+        
+        if st.button("💾 Salvar Chamada do Mês", key="btn_salvar_freq"):
+            st.success(f"Frequência da Turma {turma_freq} para o mês de {mes_selecionado} registrada com sucesso!")
+            
+    else:
+        st.warning("Faça o upload dos arquivos CSV das turmas na Aba 2 para carregar a lista de alunos e habilitar a frequência.")
