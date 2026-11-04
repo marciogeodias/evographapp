@@ -459,7 +459,7 @@ with aba_frequencia:
             else:
                 df_chamada_mes[col_dia] = ""
             
-        st.info("💡 **Dica:** O sistema aceita **P/p** para Presente e **F/f** para Falta. Dias após 04/11 iniciam em branco.")
+        st.info("💡 **Dica:** O sistema aceita **P/p** para Presente e **F/f** para Falta.")
         
         df_editado = st.data_editor(
             df_chamada_mes,
