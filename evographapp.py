@@ -390,6 +390,7 @@ with aba_relatorio:
         st.warning("Faça o upload dos arquivos CSV na Aba 2 para habilitar a análise temporal.")
 
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE
 # ------------------------------------------------------------------------------
 with aba_frequencia:
@@ -403,17 +404,46 @@ with aba_frequencia:
             turmas = sorted(df_base["Turma_Formatada"].unique())
             turma_freq = st.selectbox("Selecione a Turma:", turmas, key="turma_freq")
         with col_f2:
-            meses = ["Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-            mes_selecionado = st.selectbox("Selecione o Mês da Chamada:", meses, key="mes_freq")
+            meses_map = {
+                "Fevereiro": ("2024-02-01", "2024-02-29"),
+                "Março": ("2024-03-01", "2024-03-31"),
+                "Abril": ("2024-04-01", "2024-04-30"),
+                "Maio": ("2024-05-01", "2024-05-31"),
+                "Junho": ("2024-06-01", "2024-06-30"),
+                "Julho": ("2024-07-01", "2024-07-31"),
+                "Agosto": ("2024-08-01", "2024-08-31"),
+                "Setembro": ("2024-09-01", "2024-09-30"),
+                "Outubro": ("2024-10-01", "2024-10-31"),
+                "Novembro": ("2024-11-01", "2024-11-30"),
+                "Dezembro": ("2024-12-01", "2024-12-31")
+            }
+            mes_selecionado = st.selectbox("Selecione o Mês da Chamada:", list(meses_map.keys()), key="mes_freq")
             
         st.subheader(f"Chamada - Turma {turma_freq} ({mes_selecionado})")
         
+        # Obter alunos da turma
         alunos_turma = df_base[df_base["Turma_Formatada"] == turma_freq][["Nome", "Email"]].drop_duplicates().sort_values("Nome").reset_index(drop=True)
         
-        st.info("💡 **Dica:** Utilize o diário de classe abaixo para acompanhar o preenchimento por aluno.")
+        # Extrair RA a partir do email
+        def extrair_ra_email(email):
+            match = re.search(r'(\d+)', str(email))
+            return f"{match.group(1).zfill(9)}-SP" if match else "000000000-SP"
+
+        alunos_turma["RA"] = alunos_turma["Email"].apply(extrair_ra_email)
+
+        # Gerar colunas de dias úteis do mês selecionado
+        data_ini, data_fim = meses_map[mes_selecionado]
+        dias_uteis = pd.date_range(start=data_ini, end=data_fim, freq="B")
+        
+        df_chamada_mes = alunos_turma[["Nome", "RA", "Email"]].copy()
+        for d in dias_uteis:
+            col_dia = d.strftime("%d/%m")
+            df_chamada_mes[col_dia] = "P" # Padrão Presente (P)
+            
+        st.info("💡 **Dica:** Preencha **P** para Presente e **F** para Falta nos dias letivos abaixo.")
         
         df_editado = st.data_editor(
-            alunos_turma,
+            df_chamada_mes,
             use_container_width=True,
             num_rows="fixed",
             key=f"editor_{turma_freq}_{mes_selecionado}"
