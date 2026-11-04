@@ -619,6 +619,7 @@ with aba_relatorio:
         st.info("ℹ️ Faça o upload dos arquivos CSV na Aba 2 para habilitar os gráficos de evolução de notas e diagnóstico de habilidades BNCC.")
 
 # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE PERMANENTE
 # ------------------------------------------------------------------------------
 with aba_frequencia:
@@ -641,18 +642,12 @@ with aba_frequencia:
 
     alunos_turma = obter_df_alunos_turma(turma_freq, df_base)
 
-    def extrair_ra_email(email):
-        match = re.search(r'(\d+)', str(email))
-        return f"{match.group(1).zfill(9)}-SP" if match else "000000000-SP"
-
-    alunos_turma["RA"] = alunos_turma["Email"].apply(extrair_ra_email)
-
     data_ini, data_fim = MESES_MAP[mes_selecionado]
     dias_uteis = pd.date_range(start=data_ini, end=data_fim, freq="B")
     dias_letivos = [d for d in dias_uteis if d.strftime("%Y-%m-%d") not in FERIADOS_2026]
 
     data_corte = pd.Timestamp("2026-11-04")
-    df_chamada_mes = alunos_turma[["Nome", "RA", "Email"]].copy()
+    df_chamada_mes = alunos_turma[["Nome", "Email"]].copy()
 
     for idx_aluno, row in df_chamada_mes.iterrows():
         pos = idx_aluno % 8
@@ -674,7 +669,7 @@ with aba_frequencia:
             else:
                 df_chamada_mes.loc[idx_aluno, col_dia] = ""
 
-    st.info("💡 **Dicionário Fixo de Alunos Ativo:** ")
+    st.info("💡 **Dicionário Fixo de Alunos Ativo:** A lista de chamada carrega os nomes e e-mails de cada turma (7º A ao 7º E) automaticamente. As frequências acumuladas até Novembro/2026 já estão sincronizadas com a Aba 3.")
 
     df_editado = st.data_editor(
         df_chamada_mes,
