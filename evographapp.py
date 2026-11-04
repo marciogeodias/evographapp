@@ -448,12 +448,18 @@ with aba_frequencia:
         dias_uteis = pd.date_range(start=data_ini, end=data_fim, freq="B")
         dias_letivos = [d for d in dias_uteis if d.strftime("%Y-%m-%d") not in feriados_2026]
         
+        # Data limite para pré-preenchimento (04 de Novembro de 2026)
+        data_corte = pd.Timestamp("2026-11-04")
+        
         df_chamada_mes = alunos_turma[["Nome", "RA", "Email"]].copy()
         for d in dias_letivos:
             col_dia = d.strftime("%d/%m")
-            df_chamada_mes[col_dia] = "P"
+            if d <= data_corte:
+                df_chamada_mes[col_dia] = "P"
+            else:
+                df_chamada_mes[col_dia] = ""
             
-        st.info("💡 **Calendário 2026 (Dias Letivos):** Preencha **P** para Presente e **F** para Falta.")
+        st.info("💡 **Dica:** O sistema aceita **P/p** para Presente e **F/f** para Falta. Dias após 04/11 iniciam em branco.")
         
         df_editado = st.data_editor(
             df_chamada_mes,
@@ -463,6 +469,9 @@ with aba_frequencia:
         )
         
         if st.button("💾 Salvar Chamada do Mês", key="btn_salvar_freq_2026"):
+            colunas_dias = [c for c in df_editado.columns if c not in ["Nome", "RA", "Email"]]
+            for col in colunas_dias:
+                df_editado[col] = df_editado[col].astype(str).str.strip().str.upper()
             st.success(f"Frequência da Turma {turma_freq} para o mês de {mes_selecionado}/2026 registrada com sucesso!")
             
     else:
