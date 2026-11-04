@@ -143,7 +143,7 @@ def gerar_frequencia_automatica_todas_turmas(df_base=None):
 
     return pd.DataFrame(resumo_geral)
 
-# Inicializar frequência acumulada de forma automática no session_state
+# Inicializar frequência acumulada de forma automática e independente no session_state
 if "df_frequencia_acumulada" not in st.session_state or st.session_state["df_frequencia_acumulada"] is None:
     st.session_state["df_frequencia_acumulada"] = gerar_frequencia_automatica_todas_turmas()
 
@@ -320,11 +320,51 @@ with aba_upload:
         st.dataframe(df_participacao.sort_values(["Turma_Formatada", "Nome"]), use_container_width=True)
 
 # ------------------------------------------------------------------------------
-# ABA 3: RELATÓRIOS E DIAGNÓSTICO (SINALIZAÇÃO VISUAL DE FREQUÊNCIA AUTOMÁTICA)
+# ABA 3: RELATÓRIOS E DIAGNÓSTICO (FREQUÊNCIA 100% INDEPENDENTE DOS CSVs)
 # ------------------------------------------------------------------------------
 with aba_relatorio:
     st.header("3. Análise Longitudinal & Diagnóstico de Desempenho")
 
+    st.sidebar.header("🎯 Filtros de Visualização")
+    if "df_historico_completo" in st.session_state and not st.session_state["df_historico_completo"].empty:
+        turmas_unicas = ["Todas as Turmas (Comparativo)"] + sorted(st.session_state["df_historico_completo"]["Turma_Formatada"].dropna().unique().tolist())
+    else:
+        turmas_unicas = ["Todas as Turmas (Comparativo)"] + TURMAS_PADRAO
+
+    turma_selecionada = st.sidebar.selectbox("Selecione a Turma para analisar:", turmas_unicas, key="seletor_turma_aba3")
+
+    # ----------------------------------------------------------------------
+    # MONITORAMENTO DE FREQUÊNCIA (100% INDEPENDENTE DOS CSVs DE NOTAS)
+    # ----------------------------------------------------------------------
+    st.subheader("🚨 Diagnóstico de Frequência & Alertas de Infrequência (Acumulado até Nov/2026)")
+    
+    if "df_frequencia_acumulada" in st.session_state and not st.session_state["df_frequencia_acumulada"].empty:
+        df_freq_status = st.session_state["df_frequencia_acumulada"].copy()
+        
+        if turma_selecionada != "Todas as Turmas (Comparativo)":
+            df_freq_status = df_freq_status[df_freq_status["Turma"] == turma_selecionada]
+
+        def destacar_frequencia(val):
+            if "🔴" in str(val) or ">= 35%" in str(val) or "Crítico" in str(val):
+                return 'background-color: #ffcccc; color: #990000; font-weight: bold;'
+            elif "🟡" in str(val) or "Atenção" in str(val) or "25%" in str(val):
+                return 'background-color: #fff2cc; color: #856404; font-weight: bold;'
+            elif "🟢" in str(val):
+                return 'background-color: #d4edda; color: #155724;'
+            return ''
+
+        st.dataframe(
+            df_freq_status.style.map(destacar_frequencia, subset=["Status"]),
+            use_container_width=True
+        )
+    else:
+        st.info("ℹ️ Frequência acumulada pré-carregada automaticamente.")
+
+    st.divider()
+
+    # ----------------------------------------------------------------------
+    # ANÁLISE TEMPORAL DE NOTAS (REQUER UPLOAD DE CSVs)
+    # ----------------------------------------------------------------------
     if "df_historico_completo" in st.session_state and "gabaritos_por_prova" in st.session_state:
         df_tudo = st.session_state["df_historico_completo"].copy()
         todos_gabaritos = st.session_state["gabaritos_por_prova"]
@@ -351,48 +391,12 @@ with aba_relatorio:
         df_tudo["Avaliacao"] = pd.Categorical(df_tudo["Avaliacao"], categories=ordem_periodos, ordered=True)
         df_tudo = df_tudo.sort_values("Avaliacao")
 
-        st.sidebar.header("🎯 Filtros de Visualização")
-
-        turmas_unicas = ["Todas as Turmas (Comparativo)"] + sorted(df_tudo["Turma_Formatada"].dropna().unique().tolist())
-        turma_selecionada = st.sidebar.selectbox("Selecione a Turma para analisar:", turmas_unicas)
-
         if turma_selecionada != "Todas as Turmas (Comparativo)":
             df_filtrado_turma = df_tudo[df_tudo["Turma_Formatada"] == turma_selecionada].copy()
         else:
             df_filtrado_turma = df_tudo.copy()
 
-        # ----------------------------------------------------------------------
-        # MONITORAMENTO DE FREQUÊNCIA AUTOMÁTICO COM DESTAQUES EM VERMELHO E AMARELO
-        # ----------------------------------------------------------------------
-        st.subheader("🚨 Diagnóstico de Frequência & Alertas de Infrequência (Acumulado até Nov/2026)")
-        
-        if "df_frequencia_acumulada" in st.session_state and not st.session_state["df_frequencia_acumulada"].empty:
-            df_freq_status = st.session_state["df_frequencia_acumulada"].copy()
-            
-            if turma_selecionada != "Todas as Turmas (Comparativo)":
-                df_freq_status = df_freq_status[df_freq_status["Turma"] == turma_selecionada]
-
-            def destacar_frequencia(val):
-                if "🔴" in str(val) or ">= 35%" in str(val) or "Crítico" in str(val):
-                    return 'background-color: #ffcccc; color: #990000; font-weight: bold;'
-                elif "🟡" in str(val) or "Atenção" in str(val) or "25%" in str(val):
-                    return 'background-color: #fff2cc; color: #856404; font-weight: bold;'
-                elif "🟢" in str(val):
-                    return 'background-color: #d4edda; color: #155724;'
-                return ''
-
-            st.dataframe(
-                df_freq_status.style.map(destacar_frequencia, subset=["Status"]),
-                use_container_width=True
-            )
-        else:
-            st.info("ℹ️ Frequência pré-carregada automaticamente.")
-
-        st.divider()
-
-        # ----------------------------------------------------------------------
         # SEÇÃO 1: EVOLUÇÃO DA MÉDIA DA TURMA
-        # ----------------------------------------------------------------------
         st.subheader(f"📈 1. Evolução da Média da Turma: {turma_selecionada}")
 
         fig1, ax1 = plt.subplots(figsize=(10, 3.5))
@@ -428,9 +432,7 @@ with aba_relatorio:
 
         st.divider()
 
-        # ----------------------------------------------------------------------
         # SEÇÃO 2: EVOLUÇÃO INDIVIDUAL
-        # ----------------------------------------------------------------------
         st.subheader("👤 2. Evolução Individual de Notas por Aluno")
 
         df_filtrado_turma["Rotulo_Aluno"] = df_filtrado_turma["Nome"] + " (" + df_filtrado_turma["Email"] + ")"
@@ -466,9 +468,7 @@ with aba_relatorio:
 
         st.divider()
 
-        # ----------------------------------------------------------------------
         # SEÇÃO 3: DIAGNÓSTICO DE HABILIDADES BNCC
-        # ----------------------------------------------------------------------
         st.subheader("🧩 3. Diagnóstico Individual de Habilidades BNCC")
         rotulo_foco = st.selectbox("Selecione o Aluno para a Análise Detalhada:", rotulos_disponiveis)
 
@@ -520,7 +520,7 @@ with aba_relatorio:
                 st.pyplot(fig3)
                 st.caption("🟢 **1** = Domínio da habilidade | 🟡 **0** = Defasagem na questão.")
     else:
-        st.warning("Faça o upload dos arquivos CSV na Aba 2 para habilitar a análise temporal.")
+        st.info("ℹ️ Faça o upload dos arquivos CSV na Aba 2 para habilitar os gráficos de evolução de notas e diagnóstico de habilidades BNCC.")
 
 # ------------------------------------------------------------------------------
 # ABA 4: CONTROLE DE FREQUÊNCIA E DIÁRIO DE CLASSE PERMANENTE
@@ -528,7 +528,6 @@ with aba_relatorio:
 with aba_frequencia:
     st.header("📋 4. Gestão de Frequência e Diário de Classe (2026)")
     
-    # 1. Obter base de alunos (do upload da Aba 2 ou gerar lista padrão autônoma)
     if "df_historico_completo" in st.session_state and not st.session_state["df_historico_completo"].empty:
         df_base = st.session_state["df_historico_completo"]
         turmas_disponiveis = sorted(df_base["Turma_Formatada"].unique().tolist())
